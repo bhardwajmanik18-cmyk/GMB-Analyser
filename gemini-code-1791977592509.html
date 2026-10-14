@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Business Profile Scanner & Analyzer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-4xl mx-auto space-y-8">
+    <header class="text-center space-y-2">
+      <h1 class="text-3xl font-extrabold text-blue-600">Google Business Profile Scanner & Analyzer</h1>
+      <p class="text-slate-600">Enter your business information below to audit your profile health score.</p>
+    </header>
+
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+      <h2 class="text-xl font-bold mb-4 text-slate-900">Enter Business Details</h2>
+      <form id="auditForm" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700">Business Name</label>
+            <input type="text" id="bizName" required placeholder="e.g. Shiva Dental Clinic" class="w-full mt-1 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700">Primary Category</label>
+            <input type="text" id="bizCategory" required placeholder="e.g. Dentist, Digital Marketing Agency" class="w-full mt-1 p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-700">Google Rating (1.0 - 5.0)</label>
+            <input type="number" id="rating" step="0.1" min="1" max="5" placeholder="4.8" class="w-full mt-1 p-2.5 border border-slate-300 rounded-lg outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700">Total Reviews</label>
+            <input type="number" id="reviewsCount" min="0" placeholder="45" class="w-full mt-1 p-2.5 border border-slate-300 rounded-lg outline-none" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700">Total Photos Added</label>
+            <input type="number" id="photosCount" min="0" placeholder="20" class="w-full mt-1 p-2.5 border border-slate-300 rounded-lg outline-none" />
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <p class="text-sm font-semibold text-slate-700 mb-2">Profile Checklist:</p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-slate-600">
+            <label class="flex items-center space-x-2"><input type="checkbox" id="chkDesc" class="rounded text-blue-600" /> <span>Detailed Description (500+ chars)</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="chkHours" class="rounded text-blue-600" /> <span>Business Hours Updated</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="chkWebsite" class="rounded text-blue-600" /> <span>Official Website Linked</span></label>
+            <label class="flex items-center space-x-2"><input type="checkbox" id="chkReplies" class="rounded text-blue-600" /> <span>Replies to Reviews regularly</span></label>
+          </div>
+        </div>
+
+        <button type="button" onclick="runAudit()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-150">
+          Analyze Profile & Generate Report
+        </button>
+      </form>
+    </div>
+
+    <div id="resultsCard" class="hidden bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-6">
+      <div class="flex items-center justify-between border-b pb-4">
+        <div>
+          <h3 id="reportTitle" class="text-2xl font-bold text-slate-900"></h3>
+          <p id="reportCategory" class="text-slate-500 text-sm"></p>
+        </div>
+        <div class="text-center">
+          <div id="scoreCircle" class="w-16 h-16 rounded-full bg-blue-50 text-blue-600 border-4 border-blue-500 flex items-center justify-center text-xl font-black">
+            --
+          </div>
+          <span class="text-xs text-slate-500 font-medium">Health Score</span>
+        </div>
+      </div>
+
+      <div>
+        <h4 class="font-bold text-slate-800 mb-2">Priority Recommendations:</h4>
+        <ul id="recommendationsList" class="list-disc list-inside space-y-1 text-sm text-slate-600"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function runAudit() {
+      const name = document.getElementById('bizName').value.trim();
+      const cat = document.getElementById('bizCategory').value.trim();
+      const rating = parseFloat(document.getElementById('rating').value) || 0;
+      const reviews = parseInt(document.getElementById('reviewsCount').value) || 0;
+      const photos = parseInt(document.getElementById('photosCount').value) || 0;
+      const hasDesc = document.getElementById('chkDesc').checked;
+      const hasHours = document.getElementById('chkHours').checked;
+      const hasWeb = document.getElementById('chkWebsite').checked;
+      const replies = document.getElementById('chkReplies').checked;
+
+      if (!name) {
+        alert("Please enter a business name");
+        return;
+      }
+
+      let score = 20;
+      let recs = [];
+
+      if (hasDesc) score += 15; else recs.push("Add a complete business description highlighting your primary keywords.");
+      if (hasHours) score += 15; else recs.push("Configure regular opening hours and holiday hours.");
+      if (hasWeb) score += 10; else recs.push("Link your official landing page or website to boost authority.");
+      
+      if (reviews >= 25) score += 15;
+      else if (reviews >= 5) score += 8;
+      else recs.push("Generate at least 15–20 genuine Google customer reviews.");
+
+      if (rating >= 4.5) score += 10;
+      else if (rating >= 4.0) score += 5;
+      else recs.push("Improve overall customer rating to above 4.5 stars.");
+
+      if (photos >= 15) score += 10;
+      else recs.push("Upload at least 15 high-quality interior, exterior, and team photos.");
+
+      if (replies) score += 5; else recs.push("Start responding to both positive and negative reviews within 24–48 hours.");
+
+      document.getElementById('reportTitle').innerText = name;
+      document.getElementById('reportCategory').innerText = cat || 'Local Business';
+      document.getElementById('scoreCircle').innerText = score;
+      
+      const recsList = document.getElementById('recommendationsList');
+      recsList.innerHTML = '';
+      if (recs.length === 0) {
+        recsList.innerHTML = '<li class="text-emerald-600 font-medium">Excellent profile! All key Google ranking and completeness metrics look optimized.</li>';
+      } else {
+        recs.forEach(r => {
+          const li = document.createElement('li');
+          li.textContent = r;
+          recsList.appendChild(li);
+        });
+      }
+
+      document.getElementById('resultsCard').classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>
